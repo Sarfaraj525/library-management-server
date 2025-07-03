@@ -2,8 +2,18 @@ import express, { Application, Request, Response } from "express";
 import { booksRoutes } from "./app/controllers/books.controller";
 import { borrowRoutes } from "./app/controllers/borrow.controller";
 import { errorHandler } from "./app/middlewares/errorHandler";
+import cors from "cors";
 
 const app: Application = express();
+
+app.use(
+  cors({
+    origin: [
+      "https://library-management-client-three.vercel.app",
+      "http://localhost:5173",
+    ],
+  })
+);
 
 app.use(express.json());
 

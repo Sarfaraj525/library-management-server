@@ -9,7 +9,15 @@ borrowRoutes.post(
   "/borrow",
   async (req: Request, res: Response): Promise<void> => {
     try {
-      const { book: bookId, quantity, dueDate } = req.body;
+      const { book: bookId, quantity, dueDate } = req.body || {};
+
+      if (!bookId || !quantity || !dueDate) {
+        res.status(400).json({
+          success: false,
+          message: "All fields (book, quantity, dueDate) are required.",
+        });
+        return;
+      }
 
       const book = await Book.findById(bookId);
       if (!book) {
@@ -17,7 +25,7 @@ borrowRoutes.post(
         return;
       }
 
-      // @ts-ignore - using instance method
+      // @ts-ignore — instance method for decrementing copies
       await book.decrementCopies(quantity);
 
       const borrowRecord = await Borrow.create({
@@ -32,9 +40,10 @@ borrowRoutes.post(
         data: borrowRecord,
       });
     } catch (error) {
-      res
-        .status(400)
-        .json({ success: false, message: (error as Error).message });
+      res.status(400).json({
+        success: false,
+        message: (error as Error).message,
+      });
     }
   }
 );
@@ -56,16 +65,12 @@ borrowRoutes.get("/borrow", async (req: Request, res: Response) => {
         as: "bookDetails",
       },
     },
-    {
-      $unwind: "$bookDetails",
-    },
+    { $unwind: "$bookDetails" },
     {
       $project: {
         _id: 0,
-        book: {
-          title: "$bookDetails.title",
-          isbn: "$bookDetails.isbn",
-        },
+        title: "$bookDetails.title",
+        isbn: "$bookDetails.isbn",
         totalQuantity: 1,
       },
     },
@@ -74,6 +79,6 @@ borrowRoutes.get("/borrow", async (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: "Borrowed books summary retrieved successfully",
-    data: summary,
+    borrowSummary: summary,
   });
 });
