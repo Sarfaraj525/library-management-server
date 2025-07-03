@@ -3,15 +3,17 @@ import { booksRoutes } from "./app/controllers/books.controller";
 import { borrowRoutes } from "./app/controllers/borrow.controller";
 import { errorHandler } from "./app/middlewares/errorHandler";
 import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app: Application = express();
 
+const whiteList = process.env.WHITE_LIST_ORIGINS;
+
 app.use(
   cors({
-    origin: [
-      "https://library-management-client-three.vercel.app",
-      "http://localhost:5173",
-    ],
+    origin: [...(whiteList ? whiteList.split(",") : [])],
   })
 );
 
